@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:mybatis-spring="http://mybatis.org/schema/mybatis-spring"
+	xsi:schemaLocation="http://mybatis.org/schema/mybatis-spring http://mybatis.org/schema/mybatis-spring-1.2.xsd
+		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd">
+	
+	<!-- Root Context: defines shared resources visible to all other web components -->
+	<!-- datasource connection pool -->
+	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
+	<!-- 외부라이브러리는 이름 고정 hikariConfig 데이터베이스 정보를 갖고 있음 그걸 마이바티스에 보내면
+	마이바티스가 작동한다.  -->
+	  <property name="driverClassName" value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy" />
+	  <property name="jdbcUrl"    value="jdbc:log4jdbc:oracle:thin:@127.0.0.1:1521:xe" />
+	  <property name="username"   value="hr" />
+	  <property name="password"   value="hr" />
+	</bean>
+	
+	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource" 
+	      destroy-method="close">
+	  <constructor-arg ref="hikariConfig" />
+	</bean>
+	
+	<!-- mybatis  SqlSessionFactory -->
+	<bean class="org.mybatis.spring.SqlSessionFactoryBean">
+	  <property name="dataSource" ref="dataSource"/>
+	</bean>
+	
+	<!-- mapper scan 아래에 매퍼를 해석할 스키마가 없어서 그렇게 됨 아래에 네임스페이스 눌러서-->
+	<mybatis-spring:scan base-package="com.yedam.app.**.mapper" />
+		
+		
+</beans>
