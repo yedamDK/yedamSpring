@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "https://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!-- database_context.xml 에 마이바티스에서 설정을 했기 때문에 파일이름 대문자로 시작안해도 된다 -->
+<!-- 네임스페이스에 empMapper에 썼던 패키지명.인터페이스이름 넣기 -->
+<mapper namespace="com.yedam.spring.emp.mapper.EmpMapper">
+	<!-- 전체조회 id에는 인터페이스의 메소드 이름 끌고 와야 한다.sql에 리서트 타입에는 List를 넣지 않는다 sql은 모르니까
+	 원래는 com.yedam.spring.emp.service.EmpVO라고 써야되지만 타입알리아스에서 별칭을 쓰겠다고 했기 때문에  클래스명만 넣음-->
+	 <!-- employeeId로 EmpVO에 맵핑이 된다 -->
+	 <!-- 필드 이름 작성할 때 컬럼 약어를 쓰는데 커뮤니티라고 C라고만 쓰면 마이바티스가 읽지 못함.
+	 필드를 읽을 때 GETTER를 쓰는데 대문자로 구별을 해도 소문자로만 읽어서 읽지 못함 그래서
+	 적어도 두글자 이상씩 을 합성어로 쓸 것 -->
+	<select id="SelectEmpAllList" resultType="EmpVO">
+		SELECT employee_id, 
+			   first_name,
+			   last_name,
+			   email,
+			   phone_number,
+			   hire_date,
+			   job_id,
+			   salary,
+			   commission_pct,
+			   manager_id,
+			   department_id
+	      FROM employees
+	     ORDER BY employee_id
+	</select>
+	
+	<!--  단건조회 파라미터 타입을 생략해도 괜찮음.-->
+	 <!--  #{} :jdbc에서 PreparedStatemnet가 기본으로 작동하기 때문에
+      ?에 데이터를 집어넣는 형태 들어오는 데이터에 맞춰서 타입을 지정해줌.
+       숫자같은 경우 숫자로 넘어가는데 스트링과 데이트타입은
+        sql문에서는 콤마가 붙어야 되는데 그걸 해줌
+        0 -> 0, Kang -> 'Kang'-->
+        <!--  ${} 는 처리하지 않고 그대로 보냄0 -> 0, Kang -> Kang
+        특정한 텍스트가 그대로 들어가야할 때 사용 -->
+	<select id="selectEmpInfo" resultType="EmpVO">
+		SELECT employee_id, 
+			   first_name,
+			   last_name,
+			   email,
+			   phone_number,
+			   hire_date,
+			   job_id,
+			   salary,
+			   commission_pct,
+			   manager_id,
+			   department_id
+	      FROM employees
+	     WHERE employee_id = #{ employeeId }
+	     ORDER BY employee_id     
+	    
+	</select>
+	
+	<!-- 등록 result타입은 결과가 정수이기 때문에 생략가능 추가된 수 만큼 숫자로 나타나서
+	리설트타입은 임의의로 바꿀 수 없다-->
+	<insert id="insertEmpInfo" parameterType="EmpVO">
+		<selectKey keyProperty="employeeId" resultType="int" order="BEFORE">
+			SELECT NVL(MAX(employee_id),0) + 1 FROM employees
+		</selectKey>
+		INSERT INTO employees (employee_id, first_name, last_name, email, hire_date, job_id, salary)
+					   VALUES (#{employeeId}, #{firstName}, #{lastName}, #{email}, sysdate, #{jobId}, #{salary})
+	</insert>
+	<!-- 인서트 업데이트 안에만 지원하는 서브태그가 존재하는데 selectkey라고 한다.
+	실행되기 전 실행되고 난 후에 연속적으로 실행되는 sql문을 말함 primary를 쓸 때 쓴다.
+	시퀀스는 숫자만 지원. 모든 테이블에 id에 숫자로만 구성되어있으면 어떤 테이블의 프라이머리키인지 구분불가
+	그래서 문자를 결합한 pk를 쓸 때 셀렉트키를 사용해서 한다.
+	쓰면 좋은점은 시퀀스를 기반으로 인서트를 하게 되면 입력 직후 인서트키를 알지못하지만 셀렉트키는 알 수 있다.
+	셀렉트키는 vo에 담긴다. 처음으로 셀렉트키를 쓸 때는 NVL을 써야 한다.
+	 안 하고 하게 되면 MAX를 썼을 때 NULL은 할 수 있는게 없어서-->
+	 
+	 <!-- 수정: 급여를 정해진 비울로 인상 두 개 이상을 넘길 때 parameter타입은 생략가능 -->
+	 <update id="updateEmpSal">
+	 	 UPDATE employees
+         SET salary = salary * (1 + #{raise}/100)
+         WHERE employee_id = #{empId}
+	 </update>
+	 
+	 <!-- 수정: 사원 정보 수정 -->
+	 <!-- 1) 모든 항목에 업데이트 진행, 전제조건 : 모든 항목에 정보가 존재 -->
+	 <!-- 2) Mybatis -> Dynamic SQL 사용 -->
+	 <!-- UPDATE employees
+ 			 SET salary = salary * (1 + #{raise}/100)
+  				<where>
+  				  <if test="empId != null and empId > 0">
+				     AND employee_id = #{empId}
+   				 </if>
+  				</where>
+		</update>	 -->
+	 <update id="updateEmpInfo" parameterType="EmpVO">
+		UPDATE employees
+		<set>
+			<if test="firstName != null and !firstName.equals('')">
+				first_name = #{firstName},
+			</if>
+			<if test="email != null and !email.equals('')">
+				email = #{email},
+			</if>
+			<if test="salary > 0">
+				salary = #{salary},
+			</if>
+		</set>
+		WHERE employee_id = #{employeeId}
+	</update>
+	 
+	 
+	 
+	 <!-- 삭제 -->
+	 <delete id="deleteEmpInfo" parameterType="int">
+	 	DELETE FROM employees
+	 	WHERE employee_id = #{employeeId}
+	 </delete>	
+	 
+</mapper>  

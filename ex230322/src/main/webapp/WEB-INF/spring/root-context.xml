@@ -26,7 +26,10 @@
 	  <property name="dataSource" ref="dataSource"/>
 	</bean>
 	
-	<!-- mapper scan 아래에 매퍼를 해석할 스키마가 없어서 그렇게 됨 아래에 네임스페이스 눌러서-->
+	<!-- mapper scan 아래에 매퍼를 해석할 스키마가 없어서 에러가 뜨는데
+	아래에 네임스페이스 눌러서 마이바티스 스프링 선택하기
+	마이바티스 맵퍼의 별도의 설정 없이 스캔만 하게되면 맵퍼.xml에 있는 맵퍼 네임스페이스와
+	맵퍼 java가 같아야 한다.-->
 	<mybatis-spring:scan base-package="com.yedam.app.**.mapper" />
 		
 		
