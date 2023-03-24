@@ -3,6 +3,7 @@ package com.yedam.spring.user.service;
 import java.util.Date;
 
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.web.multipart.MultipartFile;
 
 import lombok.Data;
 
@@ -12,8 +13,12 @@ public class UserVO {
 	
 	private String name;
 	private Integer age;
-	//날짜형식 기본값은 MM/dd/yyyy? 이라서 yy-dd-mm라고 입력하면 안 된다.
-	//날짜형식을 yy-dd-mm으로 입력하면 안 되는 것을 되게 한다. 시간까지 가능 yyyy-MM-dd hh:mm:ss 라고 입력했다면
-	@DateTimeFormat(pattern = "yyyy-MM-dd hh:mm:ss")
+	//날짜형식 기본값은 MM/dd/yyyy? 이라서 yyyy-MM-dd라고 입력하면 안 된다.
+	//DateTimeFormat을 써야 날짜형식을 yyyy-MM-dd으로 입력해도 된다.
+	//시간까지 입력하려면 yyyy-MM-dd HH:mm:ss 라고 할 것
+	//만약 시간까지 썼다면 시간까지 입력해야 오류가 안 남
+	@DateTimeFormat(pattern = "yyyy-MM-dd HH:mm:ss")
 	private Date today;
+	
+	private MultipartFile pic;
 }
